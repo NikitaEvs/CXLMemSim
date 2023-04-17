@@ -33,6 +33,10 @@ LOGV=1 ./CXL-MEM-Simulator -t ./microbench/many_calloc -i 5 -c 0,1,2,3,4,5,6,7,8
 ## Limitation
 The pebs requires no larger than 5 `perf_open_event` attached to certain PID, so I limit the bpf program to munmap(kprobe) and sbrk(kprobe/kretprobe), you can configure them. For multiple process application, I need to first SIGSTOP the process and `send/recv` back the PID information. For client and server application, I need to SIGSTOP/SIGCONT on both client and server simultaneously, which is not implemented yet.
 
+## TODO
+1. Migration: CRUD on topology map.
+2. BackInv: Observe in Intel PT and CRUD on topology map.
+
 ## Cite
 ```bash
 @article{yangyarch23,

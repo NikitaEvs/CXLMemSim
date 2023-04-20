@@ -36,6 +36,7 @@ The pebs requires no larger than 5 `perf_open_event` attached to certain PID, so
 ## TODO
 1. Migration: CRUD on topology map.
 2. BackInv: Observe in Intel PT and CRUD on topology map.
+   - support multiple process view for the HDM, use intel pt to see the modification to the memory will incur more latency because the access from this host will need get back the modified data.
 
 ## Cite
 ```bash

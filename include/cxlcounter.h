@@ -11,7 +11,7 @@
 #include <map>
 #include <tuple>
 
-/** TODO: Whether to using the pebs to record the state. add back invalidation */
+/** Here Back invalidation and migration will also count */
 class CXLSwitchEvent {
 public:
     uint64_t load = 0;

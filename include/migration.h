@@ -5,18 +5,17 @@
 #ifndef CXL_MEM_SIMULATOR_MIGRATION_H
 #define CXL_MEM_SIMULATOR_MIGRATION_H
 #include "helper.h"
-#include "perf.h"
+#include "cxlcontroller.h"
 #include <cstdint>
-
-struct PerfConfig;
-class Migration {
+// transparent slow tier promote to higher tier
+// support both page level, that do the reverse mapping of the process. and the cacheline level
+class Migration : Policy {
 public:
-    uint32_t unc_idx;
-    PerfInfo *perf;
-    Migration(const uint32_t unc_idx, PerfConfig *perf_config);
+    std::map<uint64_t,int> pending_graph;
+    Migration();
     ~Migration() = default;
 
-    int read_cbo_elems(struct CBOElem *elem);
+    int compute_once(CXLController *) override;
 };
 
 #endif // CXL_MEM_SIMULATOR_MIGRATION_H

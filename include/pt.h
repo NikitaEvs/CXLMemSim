@@ -6,6 +6,7 @@
 #define CXL_MEM_SIMULATOR_PT_H
 #include "helper.h"
 #include "perf.h"
+#include <libipt.h>
 #include <cstdint>
 
 struct PerfConfig;
@@ -16,7 +17,7 @@ public:
     PT(const uint32_t unc_idx, PerfConfig *perf_config);
     ~PT() = default;
 
-    int read_cbo_elems(struct CBOElem *elem);
+    int decode_instruction(struct CBOElem *elem);
 };
 
 #endif // CXL_MEM_SIMULATOR_PT_H

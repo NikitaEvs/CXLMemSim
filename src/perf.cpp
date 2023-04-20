@@ -432,7 +432,7 @@ PerfInfo *init_incore_perf(const pid_t pid, const int cpu, uint64_t conf, uint64
         .clockid = 0
     };
     n_pid = pid;
-    n_cpu = -1;
+    n_cpu = 0;
 
     group_fd = -1;
     flags = 0x08;

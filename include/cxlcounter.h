@@ -11,7 +11,6 @@
 #include <map>
 #include <tuple>
 
-/** Here Back invalidation and migration will also count */
 class CXLSwitchEvent {
 public:
     uint64_t load = 0;
@@ -35,8 +34,8 @@ public:
     CXLMemExpanderEvent(const CXLMemExpanderEvent &other) = default;
     void inc_load();
     void inc_store();
-    void inc_migrate();
-    void inc_hit_old();
+    void inc_migrate(); // happens access to after migration
+    void inc_hit_old(); // happens during access to the prev one if not migration or backinv
 };
 class CXLCounter {
 public:
@@ -48,7 +47,7 @@ public:
     CXLCounter(const CXLCounter &other) = default;
     void inc_local();
     void inc_remote();
-    void inc_hitm();
+    void inc_hitm(); // happens when access to a local modified cacheline.
 };
 
 #endif // CXL_MEM_SIMULATOR_CXLCOUNTER_H

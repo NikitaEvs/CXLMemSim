@@ -4,11 +4,11 @@
 #include "cxlendpoint.h"
 #include "helper.h"
 #include "logging.h"
+#include "migration.h"
 #include "monitor.h"
 #include "policy.h"
 #include <cerrno>
 #include <cmath>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -44,7 +44,9 @@ int main(int argc, char *argv[]) {
         "w,weight", "The simulated weight for multiplying with the LLC miss",
         cxxopts::value<double>()->default_value("4.1"))(
         "b,bandwidth", "The simulated bandwidth by linear regression",
-        cxxopts::value<std::vector<int>>()->default_value("50,50,50,50,50,50"));
+        cxxopts::value<std::vector<int>>()->default_value("50,50,50,50,50,50"))(
+        "g,migration", "The migration policy, based on per process page hotness",
+        cxxopts::value<std::string>()->default_value("perpid"));
 
     auto result = options.parse(argc, argv);
     if (result["help"].as<bool>()) {
@@ -62,9 +64,13 @@ int main(int argc, char *argv[]) {
     auto topology = result["topology"].as<std::string>();
     auto capacity = result["capacity"].as<std::vector<int>>();
     auto dramlatency = result["dramlatency"].as<double>();
-    auto mode = result["mode"].as<std::string>() == "p" ? true : false;
+    auto mode = result["mode"].as<std::string>() == "p";
+    auto mig = result["migration"].as<std::string>() == "perpid";
     Helper helper{};
-    InterleavePolicy *policy = new InterleavePolicy();
+    auto *policy = new InterleavePolicy();
+    Migration *migration = nullptr;
+    if (mig)
+        migration = new Migration();
     CXLController *controller;
     uint64_t use_cpus = 0;
     cpu_set_t use_cpuset;
@@ -83,7 +89,7 @@ int main(int argc, char *argv[]) {
     for (auto const &[idx, value] : capacity | ranges::views::enumerate) {
         if (idx == 0) {
             LOG(DEBUG) << fmt::format("local_memory_region capacity:{}\n", value);
-            controller = new CXLController(policy, capacity[0], mode, interval);
+            controller = new CXLController(policy, migration, capacity[0], mode, interval);
         } else {
             LOG(DEBUG) << fmt::format("memory_region:{}\n", (idx - 1) + 1);
             LOG(DEBUG) << fmt::format(" capacity:{}\n", capacity[(idx - 1) + 1]);
@@ -92,7 +98,7 @@ int main(int argc, char *argv[]) {
             LOG(DEBUG) << fmt::format(" read_bandwidth:{}\n", bandwidth[(idx - 1) * 2]);
             LOG(DEBUG) << fmt::format(" write_bandwidth:{}\n", bandwidth[(idx - 1) * 2 + 1]);
             auto *ep = new CXLMemExpander(bandwidth[(idx - 1) * 2], bandwidth[(idx - 1) * 2 + 1],
-                                          latency[(idx - 1) * 2], latency[(idx - 1) * 2 + 1], (idx - 1), capacity[idx]);
+                                          latency[(idx - 1) * 2], latency[(idx - 1) * 2 + 1], idx - 1, capacity[idx]);
             controller->insert_end_point(ep);
         }
     }
@@ -154,7 +160,6 @@ int main(int argc, char *argv[]) {
         LOG(ERROR) << "Exec: failed to create target process\n";
         exit(1);
     }
-    /** TODO: bind the rest of core in 0-7 and affine the CXL Simulator to 8 */
     // In case of process, use SIGSTOP.
     auto res = monitors.enable(t_process, t_process, true, pebsperiod, tnum, mode);
     if (res == -1) {
@@ -206,8 +211,8 @@ int main(int argc, char *argv[]) {
     }
 
     uint32_t diff_nsec = 0;
-    struct timespec start_ts, end_ts;
-    struct timespec sleep_start_ts, sleep_end_ts;
+    struct timespec start_ts{}, end_ts{};
+    struct timespec sleep_start_ts{}, sleep_end_ts{};
 
     // Wait all the target processes until emulation process initialized.
     monitors.run_all(cur_processes);
@@ -332,8 +337,6 @@ int main(int argc, char *argv[]) {
 
                 LOG(DEBUG) << fmt::format("[{}:{}:{}] pebs: total={}, \n", i, mon.tgid, mon.tid, mon.after->pebs.total);
 
-                /** TODO: calculate latency construct the passing value and use interleaving policy and counter to get
-                 * the sample_prop */
                 auto all_access = controller->get_all_access();
                 LatencyPass lat_pass = {
                     .all_access = all_access,
@@ -386,7 +389,7 @@ int main(int argc, char *argv[]) {
                 clock_gettime(CLOCK_MONOTONIC, &start_ts);
                 uint64_t sleep_diff = (sleep_end_ts.tv_sec - sleep_start_ts.tv_sec) * 1000000000 +
                                       (sleep_end_ts.tv_nsec - sleep_start_ts.tv_nsec);
-                struct timespec sleep_time;
+                struct timespec sleep_time{};
                 sleep_time.tv_sec = sleep_diff / 1000000000;
                 sleep_time.tv_nsec = sleep_diff % 1000000000;
                 mon.wasted_delay.tv_sec += sleep_time.tv_sec;

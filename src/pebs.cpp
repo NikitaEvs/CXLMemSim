@@ -24,13 +24,13 @@ struct perf_sample {
 long perf_event_open(struct perf_event_attr *event_attr, pid_t pid, int cpu, int group_fd, unsigned long flags) {
     return syscall(__NR_perf_event_open, event_attr, pid, cpu, group_fd, flags);
 }
-PEBS::PEBS(pid_t pid, uint64_t sample_period, bool is_page) : pid(pid), sample_period(sample_period), is_page(is_page) {
+PEBS::PEBS(pid_t pid, uint64_t sample_period) : pid(pid), sample_period(sample_period){
     // Configure perf_event_attr struct
     struct perf_event_attr pe = {
         .type = PERF_TYPE_RAW,
         .size = sizeof(struct perf_event_attr),
         .config = 0x20d1, // mem_load_retired.l3_miss
-        .sample_period = 1,
+        .sample_period = sample_period,
         .sample_type = PERF_SAMPLE_TID | PERF_SAMPLE_TIME | PERF_SAMPLE_ADDR | PERF_SAMPLE_READ | PERF_SAMPLE_PHYS_ADDR,
         .read_format = PERF_FORMAT_TOTAL_TIME_ENABLED,
         .disabled = 1, // Event is initially disabled

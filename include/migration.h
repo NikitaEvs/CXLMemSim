@@ -9,7 +9,7 @@
 #include <cstdint>
 // transparent slow tier promote to higher tier
 // support both page level, that do the reverse mapping of the process. and the cacheline level
-class Migration : Policy {
+class Migration : public Policy {
 public:
     std::map<uint64_t,int> pending_graph;
     Migration();

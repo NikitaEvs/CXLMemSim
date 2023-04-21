@@ -2,11 +2,10 @@
 // Created by victoryang00 on 4/20/23.
 //
 
-#ifndef CXL_MEM_SIMULATOR_BackInv_H
-#define CXL_MEM_SIMULATOR_BackInv_H
-#include "helper.h"
+#ifndef CXL_MEM_SIMULATOR_BACKINV_H
+#define CXL_MEM_SIMULATOR_BACKINV_H
+#include "pt.h"
 #include "perf.h"
-#include <libipt.h>
 #include <cstdint>
 
 struct PerfConfig;
@@ -20,4 +19,4 @@ public:
     int decode_instruction(struct CBOElem *elem);
 };
 
-#endif // CXL_MEM_SIMULATOR_BackInv_H
+#endif // CXL_MEM_SIMULATOR_BACKINV_H

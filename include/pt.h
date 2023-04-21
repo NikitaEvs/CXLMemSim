@@ -6,7 +6,7 @@
 #define CXL_MEM_SIMULATOR_PT_H
 #include "helper.h"
 #include "perf.h"
-#include <libipt.h>
+#include <intel-pt.h>
 #include <cstdint>
 
 struct PerfConfig;

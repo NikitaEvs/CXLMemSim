@@ -9,6 +9,7 @@ InterleavePolicy::InterleavePolicy() {}
 // If the number is -1 for local, else it is the index of the remote server
 int InterleavePolicy::compute_once(CXLController *controller) {
     auto per_size = controller->is_page ? 4096 : 64;
+    // check whether this cacheline is already in the local memory for page level
     if (controller->occupation.size() * per_size / 1024 / 1024 < controller->capacity * 0.9) {
         return -1;
     } else {
@@ -33,7 +34,6 @@ int InterleavePolicy::compute_once(CXLController *controller) {
                     controller->cur_expanders[index]->capacity) {
                     break;
                 } else {
-                    /** TODO: capacity bound */
                     goto next;
                 }
             }

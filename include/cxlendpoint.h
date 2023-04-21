@@ -16,6 +16,7 @@ class CXLEndPoint {
     virtual int insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt_addr,
                        int index) = 0; // 0 not this endpoint, 1 store, 2 load, 3 prefetch
     virtual std::tuple<int, int> get_all_access() = 0;
+    virtual bool check_page(uint64_t addr) = 0;
 };
 
 class CXLMemExpander : public CXLEndPoint {
@@ -23,6 +24,7 @@ public:
     EmuCXLBandwidth bandwidth;
     EmuCXLLatency latency;
     uint64_t capacity;
+    std::map<uint64_t, uint64_t> hot_entry; // the hot entry(page/cacheline for migration), will be clear once migrated
     std::map<uint64_t, uint64_t> occupation; // timestamp, pa
     std::map<uint64_t, uint64_t> va_pa_map; // va, pa
     CXLMemExpanderEvent counter{};
@@ -31,15 +33,18 @@ public:
     int last_write = 0;
     double last_latency = 0.;
     int epoch = 0;
+    bool is_page = false;
     uint64_t last_timestamp = 0;
     int id = -1;
     CXLMemExpander(int read_bw, int write_bw, int read_lat, int write_lat, int id, int capacity);
     std::tuple<int, int> get_all_access() override;
-    void set_epoch(int epoch) override;
+    void set_epoch(int i) override;
     int insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt_addr, int index) override;
     double calculate_latency(LatencyPass elem) override; // traverse the tree to calculate the latency
     double calculate_bandwidth(BandwidthPass elem) override;
     void delete_entry(uint64_t addr, uint64_t length) override;
+    bool check_page(uint64_t addr) override;
+    void set_page(bool isPage);
     std::string output() override;
 };
 class CXLSwitch : public CXLEndPoint {
@@ -59,6 +64,7 @@ public:
     void delete_entry(uint64_t addr, uint64_t length) override;
     std::string output() override;
     virtual std::tuple<double, std::vector<uint64_t>> calculate_congestion();
+    bool check_page(uint64_t addr) override;
     void set_epoch(int epoch) override;
 };
 

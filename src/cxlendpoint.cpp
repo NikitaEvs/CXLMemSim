@@ -104,10 +104,12 @@ int CXLMemExpander::insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt
                     this->occupation.erase(it);
                     this->occupation.emplace(timestamp, phys_addr);
                     this->counter.inc_load();
+                    this->hot_entry[virt_addr] += 1;
                     return 2;
                 }
             }
             this->occupation.emplace(timestamp, phys_addr);
+            this->hot_entry.emplace(virt_addr, 1);
             this->counter.inc_store();
             return 1;
         } else { // kernel mode access
@@ -116,11 +118,13 @@ int CXLMemExpander::insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt
                     this->occupation.erase(it);
                     this->occupation.emplace(timestamp, virt_addr);
                     this->counter.inc_load();
+                    this->hot_entry[virt_addr] += 1;
                     return 2;
                 }
             }
 
             this->occupation.emplace(timestamp, virt_addr);
+            this->hot_entry.emplace(virt_addr, 1);
             this->counter.inc_store();
             return 1;
         }
@@ -136,7 +140,20 @@ std::tuple<int, int> CXLMemExpander::get_all_access() {
     last_counter = CXLMemExpanderEvent(counter);
     return std::make_tuple(this->last_read, this->last_write);
 }
-void CXLMemExpander::set_epoch(int epoch) { this->epoch = epoch; }
+void CXLMemExpander::set_epoch(int i) { this->epoch = i; }
+void CXLMemExpander::set_page(bool isPage) { this->is_page = isPage; }
+bool CXLMemExpander::check_page(uint64_t addr) {
+    if (is_page) {
+        for (auto &it : this->va_pa_map) {
+            if (addr - it.first < 4096) {
+                this->hot_entry[it.first] += 1;
+                this->counter.inc_load();
+                return true;
+            }
+        }
+    }
+    return false;
+}
 std::string CXLSwitch::output() {
     std::string res = fmt::format("CXLSwitch {} ", this->id);
     if (!this->switches.empty()) {
@@ -186,6 +203,19 @@ double CXLSwitch::calculate_bandwidth(BandwidthPass elem) {
         bw += switch_->calculate_bandwidth(elem);
     }
     return bw;
+}
+bool CXLSwitch::check_page(uint64_t addr) {
+    for (auto &expander : this->expanders) {
+        if (expander->check_page(addr)) {
+            return true;
+        }
+    }
+    for (auto &switch_ : this->switches) {
+        if (switch_->check_page(addr)) {
+            return true;
+        }
+    }
+    return false;
 }
 int CXLSwitch::insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt_addr, int index) {
     for (auto &expander : this->expanders) {

@@ -32,13 +32,14 @@ void CXLController::construct_topo(std::string_view newick_tree) {
     }
 }
 
-CXLController::CXLController(Policy *p, int capacity, bool is_page, int epoch)
-    : CXLSwitch(0), capacity(capacity), policy(p), is_page(is_page) {
+CXLController::CXLController(Policy *p, Policy *m, int capacity, bool is_page, int epoch)
+    : CXLSwitch(0), capacity(capacity), policy(p), migration(m), is_page(is_page) {
     for (auto switch_ : this->switches) {
         switch_->set_epoch(epoch);
     }
     for (auto expander : this->expanders) {
         expander->set_epoch(epoch);
+        expander->set_page(is_page);
     }
 }
 
@@ -72,27 +73,29 @@ std::string CXLController::output() {
 void CXLController::delete_entry(uint64_t addr, uint64_t length) { CXLSwitch::delete_entry(addr, length); }
 
 int CXLController::insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt_addr, int index) {
-    auto index_ = policy->compute_once(this);
-    if (index_ == -1) {
-        this->occupation.emplace(timestamp, phys_addr);
-        this->va_pa_map.emplace(virt_addr, phys_addr);
-        this->counter.inc_local();
-        return true;
-    } else {
-        this->counter.inc_remote();
-        for (auto switch_ : this->switches) {
-            auto res = switch_->insert(timestamp, phys_addr, virt_addr, index_);
-            if (res != 0) {
-                return res;
-            };
+    if (!this->check_page(virt_addr)) {
+        auto index_ = policy->compute_once(this);
+        if (index_ == -1) {
+            this->occupation.emplace(timestamp, phys_addr);
+            this->va_pa_map.emplace(virt_addr, phys_addr);
+            this->counter.inc_local();
+            return true;
+        } else {
+            this->counter.inc_remote();
+            for (auto switch_ : this->switches) {
+                auto res = switch_->insert(timestamp, phys_addr, virt_addr, index_);
+                if (res != 0) {
+                    return res;
+                };
+            }
+            for (auto expander_ : this->expanders) {
+                auto res = expander_->insert(timestamp, phys_addr, virt_addr, index_);
+                if (res != 0) {
+                    return res;
+                };
+            }
+            return false;
         }
-        for (auto expander_ : this->expanders) {
-            auto res = expander_->insert(timestamp, phys_addr, virt_addr, index_);
-            if (res != 0) {
-                return res;
-            };
-        }
-        return false;
     }
 }
 
@@ -119,3 +122,4 @@ std::tuple<double, std::vector<uint64_t>> CXLController::calculate_congestion() 
     return CXLSwitch::calculate_congestion();
 }
 void CXLController::set_epoch(int epoch) { CXLSwitch::set_epoch(epoch); }
+bool CXLController::check_page(uint64_t addr) { return CXLSwitch::check_page(addr); }

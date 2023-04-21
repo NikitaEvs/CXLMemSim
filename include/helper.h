@@ -16,14 +16,19 @@
 #include <fnmatch.h>
 #include <linux/perf_event.h>
 #include <map>
-#include <signal.h>
+#include <csignal>
+#include <ranges>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
 
 /* CPU Models */
-enum { CPU_MDL_BDX = 63, CPU_MDL_SKX = 85, CPU_MDL_SPR = 143, CPU_MDL_ADL = 151, CPU_MDL_END = 0x0ffff };
+constexpr auto CPU_MDL_BDX = std::views::iota(61,77);
+constexpr auto CPU_MDL_SKX = std::views::iota(78,94);
+constexpr auto CPU_MDL_SPR = std::views::iota(143,143);
+constexpr auto CPU_MDL_ADL = std::views::iota(151,154);
+constexpr auto CPU_MDL_END = std::views::iota(0x0fff,0x0fff);
 class Incore;
 class Uncore;
 class Helper;
@@ -110,7 +115,7 @@ struct PerfConfig {
 };
 
 struct ModelContext {
-    uint32_t model;
+    const std::ranges::iota_view<int, int> model;
     struct PerfConfig perf_conf;
 };
 

@@ -225,10 +225,12 @@ double Helper::cpu_frequency() const {
 PerfConfig Helper::detect_model(uint32_t model) {
     int i = 0;
     LOG(INFO) << fmt::format("Detecting model...{}\n", model);
-    while (model_ctx[i].model != CPU_MDL_END) {
-        if (model_ctx[i].model == model) {
-            this->perf_conf = model_ctx[i].perf_conf;
-            return model_ctx[i].perf_conf;
+    while (model_ctx[i].model.end() != CPU_MDL_END.end()) {
+        for (std::weakly_incrementable auto m : model_ctx[i].model) {
+            if (m == model) {
+                this->perf_conf = model_ctx[i].perf_conf;
+                return model_ctx[i].perf_conf;
+            }
         }
         i++;
     }

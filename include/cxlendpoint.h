@@ -33,7 +33,6 @@ public:
     int last_write = 0;
     double last_latency = 0.;
     int epoch = 0;
-    bool is_page = false;
     uint64_t last_timestamp = 0;
     int id = -1;
     CXLMemExpander(int read_bw, int write_bw, int read_lat, int write_lat, int id, int capacity);
@@ -44,7 +43,6 @@ public:
     double calculate_bandwidth(BandwidthPass elem) override;
     void delete_entry(uint64_t addr, uint64_t length) override;
     bool check_page(uint64_t addr) override;
-    void set_page(bool isPage);
     std::string output() override;
 };
 class CXLSwitch : public CXLEndPoint {

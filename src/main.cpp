@@ -97,8 +97,9 @@ int main(int argc, char *argv[]) {
             LOG(DEBUG) << fmt::format(" write_latency:{}\n", latency[(idx - 1) * 2 + 1]);
             LOG(DEBUG) << fmt::format(" read_bandwidth:{}\n", bandwidth[(idx - 1) * 2]);
             LOG(DEBUG) << fmt::format(" write_bandwidth:{}\n", bandwidth[(idx - 1) * 2 + 1]);
-            auto *ep = new CXLMemExpander(bandwidth[(idx - 1) * 2], bandwidth[(idx - 1) * 2 + 1],
-                                          latency[(idx - 1) * 2], latency[(idx - 1) * 2 + 1], idx - 1, capacity[idx]);
+            auto *ep =
+                new CXLMemExpander(bandwidth[(idx - 1) * 2], bandwidth[(idx - 1) * 2 + 1], latency[(idx - 1) * 2],
+                                   latency[(idx - 1) * 2 + 1], idx - 1, capacity[idx]);
             controller->insert_end_point(ep);
         }
     }

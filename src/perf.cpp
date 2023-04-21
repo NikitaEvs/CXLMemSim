@@ -472,9 +472,6 @@ PerfInfo *init_incore_bpf_perf(const pid_t pid, const int cpu) {
 
     /* clear all kprobes */
     i = system("echo \"\" > /sys/kernel/debug/tracing/kprobe_events");
-    if (i < 0) {
-        LOG(ERROR) << fmt::format("other people is working on this, skip {}\n", strerror(errno));
-    }
     /* scan over all elf sections to get license and map info */
     for (i = 1; i < ehdr.e_shnum; i++) {
 

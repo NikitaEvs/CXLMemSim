@@ -39,13 +39,15 @@ CXLController::CXLController(Policy *p, Policy *m, int capacity, bool is_page, i
     }
     for (auto expander : this->expanders) {
         expander->set_epoch(epoch);
-        expander->set_page(is_page);
     }
 }
 
 double CXLController::calculate_latency(LatencyPass elem) { return CXLSwitch::calculate_latency(elem) * 1000; }
 
-double CXLController::calculate_bandwidth(BandwidthPass elem) { return CXLSwitch::calculate_bandwidth(elem) * 1000; }
+double CXLController::calculate_bandwidth(BandwidthPass elem) {
+    // need to see the migration
+    return CXLSwitch::calculate_bandwidth(elem) * 1000;
+}
 
 std::string CXLController::output() {
     std::string res;
@@ -73,7 +75,7 @@ std::string CXLController::output() {
 void CXLController::delete_entry(uint64_t addr, uint64_t length) { CXLSwitch::delete_entry(addr, length); }
 
 int CXLController::insert(uint64_t timestamp, uint64_t phys_addr, uint64_t virt_addr, int index) {
-    if (!this->check_page(virt_addr)) {
+    if (is_page && !this->check_page(virt_addr)) {
         auto index_ = policy->compute_once(this);
         if (index_ == -1) {
             this->occupation.emplace(timestamp, phys_addr);

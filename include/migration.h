@@ -11,11 +11,12 @@
 // support both page level, that do the reverse mapping of the process. and the cacheline level
 class Migration : public Policy {
 public:
-    std::map<uint64_t,int> pending_graph;
+    std::map<uint64_t,std::tuple<int,int,int>> pending_graph; // will throttle bandwidth and hurt stt for switch virt_addr, <from,to, remaining_time>
     Migration();
     ~Migration() = default;
 
     int compute_once(CXLController *) override;
+    int get_bandwidth(int id);
 };
 
 #endif // CXL_MEM_SIMULATOR_MIGRATION_H

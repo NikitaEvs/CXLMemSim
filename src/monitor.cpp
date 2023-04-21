@@ -3,6 +3,7 @@
 //
 
 #include "monitor.h"
+#include "pt.h"
 Monitors::Monitors(int tnum, cpu_set_t *use_cpuset, int nmem, Helper h) {
     mon = std::vector<Monitor>(tnum, Monitor(nmem, h));
     /* init mon */
@@ -86,6 +87,7 @@ int Monitors::enable(const uint32_t tgid, const uint32_t tid, bool is_process, u
         LOG(DEBUG) << fmt::format("{}Process [tgid={}, tid={}]: enable to pebs.\n", target, mon[target].tgid,
                                   mon[target].tid);
     }
+    mon[target].pt_ctx = new PT(tgid);
 
     LOG(INFO) << fmt::format("========== Process {}[tgid={}, tid={}] monitoring start ==========\n", target,
                              mon[target].tgid, mon[target].tid);

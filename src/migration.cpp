@@ -4,5 +4,11 @@
 
 #include "migration.h"
 
-Migration::Migration() {}
-int Migration::compute_once(CXLController *) { return 0; }
+Migration::Migration() {} //parameter: interval, how much to migrate
+int Migration::compute_once(CXLController *) {
+//consumer: gain a snapshot hot entry of expander, need to check whether it's hitting the old.
+//producer: remove the entry from expander
+
+    return 0;
+}
+//callback

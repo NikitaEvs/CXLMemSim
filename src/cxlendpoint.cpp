@@ -141,17 +141,19 @@ std::tuple<int, int> CXLMemExpander::get_all_access() {
     return std::make_tuple(this->last_read, this->last_write);
 }
 void CXLMemExpander::set_epoch(int i) { this->epoch = i; }
-void CXLMemExpander::set_page(bool isPage) { this->is_page = isPage; }
 bool CXLMemExpander::check_page(uint64_t addr) {
-    if (is_page) {
-        for (auto &it : this->va_pa_map) {
-            if (addr - it.first < 4096) {
-                this->hot_entry[it.first] += 1;
-                this->counter.inc_load();
-                return true;
-            }
+    for (auto &it : this->va_pa_map) {
+        if (addr - it.first < 4096) {
+            this->hot_entry[it.first] += 1;
+            this->counter.inc_load();
+            return true;
         }
     }
+//    std::ranges::all_of(this->va_pa_map, [this,addr](uint64_t I) {  if (addr - I < 4096) {
+//            this->hot_entry[I] += 1;
+//            this->counter.inc_load();
+//            return true;
+//        } return false})
     return false;
 }
 std::string CXLSwitch::output() {

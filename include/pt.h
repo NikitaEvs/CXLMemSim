@@ -6,18 +6,19 @@
 #define CXL_MEM_SIMULATOR_PT_H
 #include "helper.h"
 #include "perf.h"
+#include "pebs.h"
 #include <intel-pt.h>
 #include <cstdint>
 
-struct PerfConfig;
+struct PerfConfig;// Use PT to hook on other process to make back invalidation
 class PT {
 public:
     uint32_t unc_idx;
     PerfInfo *perf;
-    PT(const uint32_t unc_idx, PerfConfig *perf_config);
+    PT(const pid_t pid);
     ~PT() = default;
 
-    int decode_instruction(struct CBOElem *elem);
+    int decode_instruction();
 };
 
 #endif // CXL_MEM_SIMULATOR_PT_H

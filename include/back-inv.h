@@ -12,11 +12,9 @@ struct PerfConfig;
 class BackInv {
 public:
     uint32_t unc_idx;
-    PerfInfo *perf;
-    BackInv(const uint32_t unc_idx, PerfConfig *perf_config);
+    PT *pt;
+    BackInv(const uint32_t unc_idx, PT *pt);
     ~BackInv() = default;
-
-    int decode_instruction(struct CBOElem *elem);
 };
 
 #endif // CXL_MEM_SIMULATOR_BACKINV_H

@@ -36,7 +36,7 @@ void Monitors::run_all(const int processes) {
         }
     }
 }
-int Monitors::enable(const uint32_t tgid, const uint32_t tid, bool is_process, uint64_t pebs_sample_period,
+int Monitors::enable(const uint32_t tgid, const uint32_t tid, bool is_process, uint64_t sample_period,
                      const int32_t tnum, bool is_page) {
     int target = -1;
 
@@ -81,13 +81,14 @@ int Monitors::enable(const uint32_t tgid, const uint32_t tid, bool is_process, u
     mon[target].tid = tid;
     mon[target].is_process = is_process;
 
-    if (pebs_sample_period) {
+    if (sample_period) {
         /* pebs start */
-        mon[target].pebs_ctx = new PEBS(tgid, pebs_sample_period);
+        mon[target].pebs_ctx = new PEBS(tgid, sample_period);
         LOG(DEBUG) << fmt::format("{}Process [tgid={}, tid={}]: enable to pebs.\n", target, mon[target].tgid,
                                   mon[target].tid);
+        /* pt start */
+        mon[target].pt_ctx = new PT(tgid, sample_period);
     }
-    mon[target].pt_ctx = new PT(tgid);
 
     LOG(INFO) << fmt::format("========== Process {}[tgid={}, tid={}] monitoring start ==========\n", target,
                              mon[target].tgid, mon[target].tid);
@@ -116,9 +117,9 @@ void Monitors::disable(const uint32_t target) {
         mon[target].pebs_ctx->mp = nullptr;
         mon[target].pebs_ctx->sample_period = 0;
     }
-    for (int j = 0; j < 2; j++) {
-        mon[target].elem[j].pebs.total = 0;
-        mon[target].elem[j].pebs.llcmiss = 0;
+    for (auto & j : mon[target].elem) {
+        j.pebs.total = 0;
+        j.pebs.llcmiss = 0;
     }
 }
 bool Monitors::check_all_terminated(const uint32_t processes) {

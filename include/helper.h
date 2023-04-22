@@ -75,6 +75,12 @@ struct PEBSElem {
     uint64_t llcmiss;
 };
 
+struct PTElem {
+    uint64_t total;
+    uint64_t llcmiss;
+    uint64_t back_inv;
+};
+
 struct CPUInfo {
     uint32_t max_cpuid;
     uint32_t cpu_family;
@@ -87,6 +93,7 @@ struct Elem {
     struct CBOElem *cbos;
     struct CPUElem *cpus;
     struct PEBSElem pebs;
+    struct PTElem pt;
 };
 
 class PMUInfo {

@@ -13,12 +13,23 @@
 struct PerfConfig;// Use PT to hook on other process to make back invalidation
 class PT {
 public:
-    uint32_t unc_idx;
+    bool failure_state;
+    int intel_pt_type;
+    int perf_fd;
+    pid_t pid;
+    struct perf_event_mmap_page *mp;
+    char *base, *data, *aux;
+    uint64_t base_mmap_size, aux_mmap_size;
+    int pt_fd;
+    int sb_fd;
     PerfInfo *perf;
-    PT(const pid_t pid);
+    PT( pid_t pid,uint64_t);
     ~PT() = default;
 
-    int decode_instruction();
+    int decode_instruction(std::byte *byte_array);
+    int read(CXLController *, struct PTElem *);
+    int start();
+    int stop();
 };
 
 #endif // CXL_MEM_SIMULATOR_PT_H

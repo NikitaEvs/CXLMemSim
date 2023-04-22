@@ -25,6 +25,12 @@
 #include <unistd.h>
 #include <x86intrin.h>
 
+#define PAGE_SIZE 4096
+#define DATA_SIZE PAGE_SIZE
+#define MMAP_SIZE (PAGE_SIZE + DATA_SIZE)
+
+#define barrier() _mm_mfence()
+
 long perf_event_open(struct perf_event_attr *event_attr, pid_t pid, int cpu, int group_fd, unsigned long flags);
 class PEBS {
 public:

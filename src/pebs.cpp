@@ -4,12 +4,6 @@
 
 #include "pebs.h"
 
-#define PAGE_SIZE 4096
-#define DATA_SIZE PAGE_SIZE
-#define MMAP_SIZE (PAGE_SIZE + DATA_SIZE)
-
-#define barrier() _mm_mfence()
-
 struct perf_sample {
     struct perf_event_header header;
     uint32_t pid;

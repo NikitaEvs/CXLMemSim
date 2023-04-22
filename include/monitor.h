@@ -8,6 +8,7 @@
 #include "cxlcontroller.h"
 #include "helper.h"
 #include "pebs.h"
+#include "pt.h"
 #include <cerrno>
 #include <csignal>
 #include <cstring>
@@ -56,6 +57,7 @@ public:
     struct timespec start_exec_ts, end_exec_ts;
     bool is_process;
     struct PEBS *pebs_ctx;
+    struct PT *pt_ctx;
 
     Monitor(const int nmem, Helper h);
 

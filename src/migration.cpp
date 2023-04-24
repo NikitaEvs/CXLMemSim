@@ -11,4 +11,5 @@ int Migration::compute_once(CXLController *) {
 
     return 0;
 }
+int Migration::get_bandwidth(int id) { return 0; }
 //callback

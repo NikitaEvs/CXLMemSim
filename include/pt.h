@@ -5,12 +5,12 @@
 #ifndef CXL_MEM_SIMULATOR_PT_H
 #define CXL_MEM_SIMULATOR_PT_H
 #include "helper.h"
-#include "perf.h"
 #include "pebs.h"
-#include <intel-pt.h>
+#include "perf.h"
 #include <cstdint>
+#include <intel-pt.h>
 
-struct PerfConfig;// Use PT to hook on other process to make back invalidation
+struct PerfConfig; // Use PT to hook on other process to make back invalidation
 class PT {
 public:
     bool failure_state;
@@ -23,10 +23,10 @@ public:
     int pt_fd;
     int sb_fd;
     PerfInfo *perf;
-    PT( pid_t pid,uint64_t);
+    PT(pid_t pid, uint64_t);
     ~PT() = default;
 
-    int decode_instruction(std::byte *byte_array);
+    int decode_instruction(std::byte *byte_array, size_t buffer_size);
     int read(CXLController *, struct PTElem *);
     int start();
     int stop();

@@ -12,8 +12,8 @@ struct PerfConfig;
 class BackInv {
 public:
     uint32_t unc_idx;
-    PT *pt;
-    BackInv(const uint32_t unc_idx, PT *pt);
+    PTElem *pt;
+    BackInv(const uint32_t unc_idx, PTElem *pt);
     ~BackInv() = default;
 };
 

@@ -28,27 +28,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(fmt)
 
-include(ExternalProject)
-ExternalProject_Add(libbpf_lib
-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-    URL https://github.com/libbpf/libbpf/archive/refs/tags/v1.5.0.tar.gz
-    UPDATE_COMMAND ""
-    SOURCE_DIR ""
-    BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND COMMAND cd src && make
-    INSTALL_COMMAND ""
-)
-ExternalProject_Get_property(libbpf_lib SOURCE_DIR)
-set(libbpf_lib_SOURCE_DIR "${SOURCE_DIR}")
+set(LIBBPF_PATH "" CACHE PATH "Path to the libbpf installation tree (leave empty if it's installed in the system)")
+message("LIBBPF installation path: ${LIBBPF_PATH}")
 
-add_library(libbpf_lib_a STATIC IMPORTED GLOBAL)
-set_property(TARGET libbpf_lib_a 
-    PROPERTY IMPORTED_LOCATION 
-    ${libbpf_lib_SOURCE_DIR}/src/libbpf.a
+find_library(LIBBPF
+    NAMES bpf
+    HINTS "${LIBBPF_PATH}/usr/lib/x86_64-linux-gnu"
 )
-set(libbpf_INCLUDE_DIR ${libbpf_lib_SOURCE_DIR}/src)
-add_dependencies(libbpf_lib_a libbpf_lib)
+find_path(LIBBPF_HEADERS bpf.h HINTS "${LIBBPF_PATH}/usr/include/bpf")
+
+message("LIBBPF: ${LIBBPF}")
+message("LIBBPF HEADERS: ${LIBBPF_HEADERS}")
+
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
@@ -60,10 +51,9 @@ add_subdirectory(microbench)
 
 add_executable(CXLMemSim ${SOURCE_FILES} src/main.cc)
 
-message("Libbpf include dirs = ${libbpf_INCLUDE_DIR}")
-include_directories(CXLMemSim include ${cxxopts_INCLUDE_DIR} ${fmt_INCLUDE_DIR} ${libbpf_INCLUDE_DIR})
-target_link_libraries(CXLMemSim fmt::fmt cxxopts::cxxopts libbpf_lib_a)
+include_directories(CXLMemSim include ${cxxopts_INCLUDE_DIR} ${fmt_INCLUDE_DIR} ${LIBBPF_HEADERS})
+target_link_libraries(CXLMemSim fmt::fmt cxxopts::cxxopts ${LIBBPF})
 
 add_library(CXLMemSimHook SHARED src/module.cc)
 add_executable(CXLMemSimSock ${SOURCE_FILES} src/sock.cc)
-target_link_libraries(CXLMemSimSock fmt::fmt cxxopts::cxxopts libbpf_lib_a)
+target_link_libraries(CXLMemSimSock fmt::fmt cxxopts::cxxopts ${LIBBPF})

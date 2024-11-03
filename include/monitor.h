@@ -77,7 +77,8 @@ template <> struct fmt::formatter<Monitors> {
     auto format(Monitors const &p, auto &ctx) const {
         auto out = fmt::format_to(ctx.out(), "");
         if (p.print_flag) {
-            for (auto const &[mon_id, mon] : p.mon | enumerate) {
+            for (size_t mon_id = 0; mon_id < p.mon.size(); ++mon_id) {
+                const auto& mon = p.mon[mon_id];
                 for (auto core_idx = 0; core_idx < helper.used_cha.size(); core_idx++) {
                     for (auto cha_idx = 0; cha_idx < helper.perf_conf.cha.size(); cha_idx++) {
                         out = fmt::format_to(out, "mon{}_{}_{}_{},", mon_id, std::get<0>(helper.perf_conf.cha[cha_idx]),
@@ -100,8 +101,8 @@ template <> struct fmt::formatter<Monitors> {
                 }
             }
         } else {
-
-            for (auto const &[mon_id, mon] : p.mon | enumerate) {
+            for (size_t mon_id = 0; mon_id < p.mon.size(); ++mon_id) {
+                const auto& mon = p.mon[mon_id];
                 for (auto core_idx = 0; core_idx < helper.used_cha.size(); core_idx++) {
                     for (auto cha_idx = 0; cha_idx < helper.perf_conf.cha.size(); cha_idx++) {
                         out = fmt::format_to(out, "{},",

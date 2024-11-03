@@ -38,7 +38,8 @@ int Incore::stop() {
 
 ssize_t Incore::read_cpu_elems(struct CPUElem *elem) {
     ssize_t r;
-    for (auto const &[idx, value] : this->perf | enumerate) {
+    for (size_t idx = 0; idx < this->perf.size(); ++idx) {
+        const auto& value = this->perf[idx];
         r = value->read_pmu(&elem->cpu[idx]);
         if (r < 0) {
             LOG(ERROR) << fmt::format("read cpu_elems[{}] failed.\n", std::get<0>(helper.perf_conf.cha[idx]));
